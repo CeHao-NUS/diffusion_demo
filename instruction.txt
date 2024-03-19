@@ -1,0 +1,8 @@
+1. dataloader, very easy
+2. visualizer, sample and plot distribution
+3. unconditional, Unet
+4. Train and eval, without keyframe
+
+
+
+5. implement inpatint with mask, vanilla
