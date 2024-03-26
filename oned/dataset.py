@@ -82,9 +82,6 @@ class CubicSplineDataset(Dataset):
         # Evaluate the spline to generate data
         y = spline(self.x)
 
-        # Sample weight a from a unit Gaussian distribution
-        # a = np.random.normal()
-
         # Normalize the data by the weight a
         normalized_data = SCALE * y + BIAS
 

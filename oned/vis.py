@@ -67,7 +67,7 @@ def vis_diff_steps(x_results, mask, patch, ax):
 
 
 
-def vis_1d(samples,):
+def vis_1d(samples):
     # samples: [Batch, Length]
     samples_reshaped = samples.reshape(-1, 1)  # Reshape to a 2D array for KDE
     B, L = samples.shape
@@ -99,6 +99,8 @@ def vis_1d(samples,):
     plt.ylabel('Value')
     plt.title('2D Gaussian KDE of Dataset')
     plt.show()
+
+    return kde
 
 
 def do_vis(file_name):

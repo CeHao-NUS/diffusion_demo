@@ -16,7 +16,7 @@ from vis import do_vis
 def eval_main(args):
 
     # 0. initialize parameters
-    diff_model_name = 'ema_noise_pred_net.pth'
+    diff_model_name = 'ema_noise_pred_net(cubic).pth'
 
     # 1. load model
     noise_pred_net, noise_scheduler =  create_networks(args.num_diffusion_iters)
@@ -99,7 +99,7 @@ def eval(args, model, scheduler, num_diffusion_iters, batch_size, inpainting_dic
             x_store.append(x.detach().cpu().numpy())
 
             # 3. do inpainting with mask
-            x = vanila_inpainting(x, inpainting_dict['mask'], inpainting_dict['patch'])
+            # x = vanila_inpainting(x, inpainting_dict['mask'], inpainting_dict['patch'])
             # x = MSE_opt(x, inpainting_dict['mask'], inpainting_dict['patch'], args.loss_weight)
 
             
