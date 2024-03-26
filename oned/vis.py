@@ -1,5 +1,6 @@
 from scipy.stats import gaussian_kde
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import pickle
 
@@ -100,18 +101,31 @@ def vis_1d(samples,):
     plt.show()
 
 
-if __name__ == "__main__":
-
-
-    # load data by pickle
-    data = pickle.load(open('./xxx/results_last.pkl', 'rb'))
-
+def do_vis(file_name):
+    data = pickle.load(open(file_name, 'rb'))
     x_results = data['x_results']
     inpainting_dict = data['inpainting_dict']
     mask = inpainting_dict['mask']
     patch = inpainting_dict['patch']
 
+    # create a sub folder
+    sub_folder = file_name.split('/')[1]
+    # create fig foler
+    fig_folder = './{}/figs'.format(sub_folder)
+    if not os.path.exists(fig_folder):
+        os.makedirs(fig_folder)
+
+    # get file name from
+    fig_save_name = fig_folder + "/" + file_name.split('/')[2] + '.png'
+    
+
     fig, ax = plt.subplots(1, 2, figsize=(20,7))
     vis_last_action(x_results, mask, patch, ax[0])
     vis_diff_steps(x_results, mask, patch, ax[1])
-    plt.show()
+    plt.savefig(fig_save_name)
+    # plt.show()
+    plt.close()
+
+if __name__ == "__main__":
+    file_name = './xxx/results_last.pkl'
+    do_vis(file_name)

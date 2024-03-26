@@ -8,19 +8,10 @@ import torch
 import torch.nn as nn
 import os
 
-from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
-from diffusers.training_utils import EMAModel
-from diffusers.optimization import get_scheduler
-from tqdm.auto import tqdm
-
-
-
 from train import create_networks
 from inpainting import line_patch, vanila_inpainting, MSE_opt
-from vis import calculate_mse_loss, vis_last_action, vis_diff_steps
-
 from args import get_args
-
+from vis import do_vis
 
 def eval_main(args):
 
@@ -38,8 +29,8 @@ def eval_main(args):
     ema_noise_pred_net.load_state_dict(torch.load(diff_model_name))
 
     # 2. create inpainting patches and mask
-    # patch_values = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    patch_values = [-0.7]
+    patch_values = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    # patch_values = [-0.5]
     
     for const_path in patch_values:
         patch, mask = line_patch(patch_value=const_path)
@@ -62,10 +53,12 @@ def eval_main(args):
             pickle.dump(save_file, f)
 
         # save with name last
-        save_file_name = './{}/results_last.pkl'.format(args.folder_name)
-        with open(save_file_name, 'wb') as f:
-            pickle.dump(save_file, f)
+        # save_file_name = './{}/results_last.pkl'.format(args.folder_name)
+        # with open(save_file_name, 'wb') as f:
+        #     pickle.dump(save_file, f)
 
+        # 5. visualize results
+        do_vis(save_file_name)
 
 def eval(args, model, scheduler, num_diffusion_iters, batch_size, inpainting_dict, device='cuda'):
     # 0. initialize parameters
@@ -106,8 +99,8 @@ def eval(args, model, scheduler, num_diffusion_iters, batch_size, inpainting_dic
             x_store.append(x.detach().cpu().numpy())
 
             # 3. do inpainting with mask
-            # x = vanila_inpainting(x, inpainting_dict['mask'], inpainting_dict['patch'])
-            x = MSE_opt(x, inpainting_dict['mask'], inpainting_dict['patch'], args.loss_weight)
+            x = vanila_inpainting(x, inpainting_dict['mask'], inpainting_dict['patch'])
+            # x = MSE_opt(x, inpainting_dict['mask'], inpainting_dict['patch'], args.loss_weight)
 
             
 
@@ -123,5 +116,5 @@ def eval(args, model, scheduler, num_diffusion_iters, batch_size, inpainting_dic
 if __name__ == '__main__':
     args = get_args()
     eval_main(args)
-    exec(open('vis.py').read())
+    # exec(open('vis.py').read())
     

@@ -21,7 +21,10 @@ import cvxpy as cp
 def main(num_epochs=100, num_diffusion_iters=100):
 
     #  ===================== get data loader =====================
-    dataset = get_dataloader()
+    
+    dataset = get_dataloader(dist='double_cubic_spline')
+    # dataset = get_dataloader(dist='cubic_spline')
+    # dataset = get_dataloader(dist='line')
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=256,
@@ -165,7 +168,7 @@ def train(num_epochs, dataloader, noise_pred_net, noise_scheduler, optimizer, lr
 
 
 if __name__ == '__main__':
-    # main(num_epochs=500, num_diffusion_iters=200)
+    main(num_epochs=500, num_diffusion_iters=200)
     # eval_main(num_diffusion_iters=200, batch_size=256)
     pass
 
