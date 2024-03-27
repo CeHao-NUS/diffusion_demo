@@ -61,6 +61,9 @@ class CubicSplineDataset(Dataset):
         self.x = np.linspace(0, 1, dimensions)  # Define the x-axis for the spline
         self.base_points_x = np.linspace(0, 1, 5)  # 5 points to define the spline
 
+        self.scale = 0.1
+        self.bias = 0.1
+
     def __len__(self):
         """
         Return the size of the dataset.
@@ -74,7 +77,7 @@ class CubicSplineDataset(Dataset):
         then evaluate the spline, and normalize the data by a weight a.
         """
         # Generate a unique set of y values for the cubic spline for each sample
-        base_points_y = np.random.rand(5)  # Random y values for the spline
+        base_points_y = np.random.randn(5)  # Random y values for the spline
 
         # Create a cubic spline based on the unique base points for this sample
         spline = CubicSpline(self.base_points_x, base_points_y)
@@ -83,7 +86,7 @@ class CubicSplineDataset(Dataset):
         y = spline(self.x)
 
         # Normalize the data by the weight a
-        normalized_data = SCALE * y + BIAS
+        normalized_data = self.scale * y + self.bias
 
         batch_data = np.expand_dims(normalized_data, axis=-1)
 
@@ -100,6 +103,8 @@ class DoubleCubicSplineDataset(Dataset):
         self.size = size
         self.dimensions = dimensions
         self.x = np.linspace(0, 1, dimensions)  # Define the x-axis for the spline
+        self.scale = 0.15
+        self.bias = 0.3
 
     def __len__(self):
         """
@@ -114,13 +119,13 @@ class DoubleCubicSplineDataset(Dataset):
         """
         mode = np.random.choice([-1, 1])  # Uniformly select a mode
         base_points_x = np.linspace(0, 1, 5)  # x positions for base points remain constant
-        base_points_y = np.random.rand(5)  # Random y values for the spline, unique for each sample
+        base_points_y = np.random.randn(5)  # Random y values for the spline, unique for each sample
         
         # Create a cubic spline for this sample
         spline = CubicSpline(base_points_x, base_points_y)
         y = spline(self.x)  # Evaluate the spline
         
-        normalized_data = SCALE * y + BIAS * mode  # Normalize and bias the data
+        normalized_data = self.scale * y + self.bias * mode  # Normalize and bias the data
         batch_data = np.expand_dims(normalized_data, axis=-1)
 
         return torch.tensor(batch_data, dtype=torch.float)  # Convert to a PyTorch tensor and return

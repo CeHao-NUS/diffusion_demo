@@ -30,7 +30,7 @@ def eval_main(args):
 
     # 2. create inpainting patches and mask
     patch_values = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    # patch_values = [-0.5]
+    # patch_values = [0.0]
     
     for const_path in patch_values:
         patch, mask = line_patch(patch_value=const_path)
@@ -100,7 +100,7 @@ def eval(args, model, scheduler, num_diffusion_iters, batch_size, inpainting_dic
 
             # 3. do inpainting with mask
             # x = vanila_inpainting(x, inpainting_dict['mask'], inpainting_dict['patch'])
-            # x = MSE_opt(x, inpainting_dict['mask'], inpainting_dict['patch'], args.loss_weight)
+            x = MSE_opt(x, inpainting_dict['mask'], inpainting_dict['patch'], args.loss_weight)
 
             
 
