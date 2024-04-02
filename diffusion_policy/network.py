@@ -1,17 +1,3 @@
-#@markdown ### **Network**
-#@markdown
-#@markdown Defines a 1D UNet architecture `ConditionalUnet1D`
-#@markdown as the noies prediction network
-#@markdown
-#@markdown Components
-#@markdown - `SinusoidalPosEmb` Positional encoding for the diffusion iteration k
-#@markdown - `Downsample1d` Strided convolution to reduce temporal resolution
-#@markdown - `Upsample1d` Transposed convolution to increase temporal resolution
-#@markdown - `Conv1dBlock` Conv1d --> GroupNorm --> Mish
-#@markdown - `ConditionalResidualBlock1D` Takes two inputs `x` and `cond`. \
-#@markdown `x` is passed through 2 `Conv1dBlock` stacked together with residual connection.
-#@markdown `cond` is applied to `x` with [FiLM](https://arxiv.org/abs/1709.07871) conditioning.
-
 #@markdown ### **Imports**
 # diffusion policy import
 from typing import Tuple, Sequence, Dict, Union, Optional
@@ -41,6 +27,19 @@ from skvideo.io import vwrite
 from IPython.display import Video
 import gdown
 import os
+#@markdown ### **Network**
+#@markdown
+#@markdown Defines a 1D UNet architecture `ConditionalUnet1D`
+#@markdown as the noies prediction network
+#@markdown
+#@markdown Components
+#@markdown - `SinusoidalPosEmb` Positional encoding for the diffusion iteration k
+#@markdown - `Downsample1d` Strided convolution to reduce temporal resolution
+#@markdown - `Upsample1d` Transposed convolution to increase temporal resolution
+#@markdown - `Conv1dBlock` Conv1d --> GroupNorm --> Mish
+#@markdown - `ConditionalResidualBlock1D` Takes two inputs `x` and `cond`. \
+#@markdown `x` is passed through 2 `Conv1dBlock` stacked together with residual connection.
+#@markdown `cond` is applied to `x` with [FiLM](https://arxiv.org/abs/1709.07871) conditioning.
 
 class SinusoidalPosEmb(nn.Module):
     def __init__(self, dim):
