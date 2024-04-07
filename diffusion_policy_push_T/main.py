@@ -3,6 +3,7 @@ from dataset import *
 from network import *
 
 from args import get_args    
+import matplotlib.pyplot as plt
 
 def create_env():
     from huggingface_hub.utils import IGNORE_GIT_FOLDER_PATTERNS
@@ -247,6 +248,7 @@ def eval(args, env, noise_pred_net, noise_scheduler, stats):
         [obs] * obs_horizon, maxlen=obs_horizon)
     # save visualization and rewards
     imgs = [env.render(mode='rgb_array')]
+    actions = list()
     rewards = list()
     done = False
     step_idx = 0
@@ -266,7 +268,7 @@ def eval(args, env, noise_pred_net, noise_scheduler, stats):
                 # reshape observation to (B,obs_horizon*obs_dim)
                 obs_cond = nobs.unsqueeze(0).flatten(start_dim=1)
 
-                # initialize action from Guassian noise
+                # initialize action from Guassian noise =============================
                 noisy_action = torch.randn(
                     (B, pred_horizon, action_dim), device=device)
                 naction = noisy_action
@@ -289,6 +291,23 @@ def eval(args, env, noise_pred_net, noise_scheduler, stats):
                         sample=naction
                     ).prev_sample
 
+                # test inpainting ==============================
+                # inpainting_dict = {'obs_cond': obs_cond, 'noisy_action': noisy_action, 'num_diffusion_iters': num_diffusion_iters}
+                # save them
+                # np.save('inpainting.npy', inpainting_dict)
+                    
+                if step_idx == 0:
+                    print('apply inpainting')
+                    from inpaint import inpainting_test
+                    actions0, action_vanilla, action_opt, patch, mask_idx = inpainting_test( 
+                        ema_noise_pred_net, noise_scheduler, obs_cond, noisy_action, num_diffusion_iters
+                    )
+                
+                    naction = action_opt
+                    # to tensor # reshape back
+                    naction = torch.tensor(naction, dtype=torch.float32).to(device)
+                    naction = naction.unsqueeze(0)
+
             # unnormalize action
             naction = naction.detach().to('cpu').numpy()
             # (B, pred_horizon, action_dim)
@@ -310,7 +329,10 @@ def eval(args, env, noise_pred_net, noise_scheduler, stats):
                 obs_deque.append(obs)
                 # and reward/vis
                 rewards.append(reward)
+                actions.append(normalize_data(action[i], stats=stats['action']) )
                 imgs.append(env.render(mode='rgb_array'))
+
+                # save_action_image(action[i], env.render(mode='rgb_array'), step_idx)
 
                 # update progress bar
                 step_idx += 1
@@ -325,15 +347,58 @@ def eval(args, env, noise_pred_net, noise_scheduler, stats):
     print('Score: ', max(rewards))
 
     # visualize
-    from IPython.display import Video
-    vwrite('vis.mp4', imgs)
-    Video('vis.mp4', embed=True, width=256, height=256)
+    # from IPython.display import Video
+    # vwrite('vis.mp4', imgs)
+    # Video('vis.mp4', embed=True, width=256, height=256)
+
+    save_video('vis2.mp4', imgs)
+
+    # save actions
+    np.save('actions.npy', np.array(actions))
+
+def save_video(file_name, frames, fps=20, video_format='mp4'):
+    import skvideo.io
+    skvideo.io.vwrite(
+        file_name,
+        frames,
+        inputdict={
+            '-r': str(int(fps)),
+        },
+        outputdict={
+            '-f': video_format,
+            '-pix_fmt': 'yuv420p', # '-pix_fmt=yuv420p' needed for osx https://github.com/scikit-video/scikit-video/issues/74
+        }
+    )
+
+def save_action_image(action, image, idx):
+    # create folder for images
+    if not os.path.exists('images'):
+        os.makedirs('images')
+
+    # save image, action as image for visualization
+    plt.imshow(image)
+    plt.axis('off')
+    plt.savefig(f'images/img_{idx}_{action}.png')
+
+
+def vis_actions(actions):
+    plt.figure()
+    plt.plot(actions[:,0], actions[:,1], label='trajectory')
+    plt.scatter(actions[:,0], actions[:,1], c=range(len(actions)), label='time')
+    plt.colorbar()
+    plt.legend()
+    plt.axis('equal')
+    plt.xlim([-1,1])
+    plt.ylim([-1,1])
+    plt.show()
 
 if __name__ == '__main__':
     args = get_args()
     env = create_env()
     dataloader = creat_dataset(args)
     noise_pred_net, noise_scheduler = create_network(args)
+
+    args.mode = 'eval'
 
     if args.mode == 'train':
         train(args, noise_pred_net, noise_scheduler, dataloader)
@@ -342,3 +407,4 @@ if __name__ == '__main__':
         load_modal(args, noise_pred_net)
         eval(args, env, noise_pred_net, noise_scheduler, dataloader.dataset.stats)
         print("Evaluation done!")
+
